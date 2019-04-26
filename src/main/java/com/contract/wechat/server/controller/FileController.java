@@ -30,7 +30,7 @@ public class FileController {
     @Autowired
     private ContractService contractService;
     /**
-     * 导出最近N天有formid的用户记录
+     * 导出数据库用户的表格
      */
     @RequestMapping(value = "/exportUser", produces = "text/plain")
     public String exportUser(HttpServletResponse response) {
@@ -80,6 +80,9 @@ public class FileController {
         return null;
     }
 
+    /**
+     * 导出数据库合同的表格
+     */
     @RequestMapping(value = "/exportContract", produces = "text/plain")
     public String exportContract(HttpServletResponse response) {
         String filename = this.contractService.exportCurrenPage2xls();
@@ -129,7 +132,7 @@ public class FileController {
     }
 
     /**
-     * 导入用户发送模板消息
+     * 导入用户表格到数据库
      */
     @PostMapping("/importUser")
     @ResponseBody
@@ -165,7 +168,7 @@ public class FileController {
     }
 
     /**
-     * 导入用户发送模板消息
+     * 导入合同表格到数据库
      */
     @PostMapping("/importContract")
     @ResponseBody

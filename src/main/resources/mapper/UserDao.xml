@@ -9,6 +9,12 @@
         <result property="username" column="username"/>
         <result property="mobile" column="mobile"/>
         <result property="idCard" column="id_card"/>
+        <result property="password" column="password"/>
+        <result property="openId" column="open_id"/>
+        <result property="unionId" column="union_id"/>
+        <result property="nickName" column="nick_name"/>
+        <result property="avatarUrl" column="avatar_url"/>
+        <result property="gender" column="gender"/>
         <result property="department" column="department"/>
         <result property="deletedAt" column="deleted_at"/>
         <result property="createdAt" column="created_at"/>

@@ -26,10 +26,10 @@ public class JWTUtil {
     public static boolean verify(HttpServletRequest request) {
         try {
             String token=request.getHeader("token");
-            String username = JWT.decode(token).getClaim("username").asString();
+            String username = JWT.decode(token).getClaim("openId").asString();
             Algorithm algorithm = Algorithm.HMAC256(secret);
             JWTVerifier verifier = JWT.require(algorithm)
-                    .withClaim("username", username)
+                    .withClaim("openId", username)
                     .build();
             DecodedJWT jwt = verifier.verify(token);
             return true;
@@ -46,7 +46,7 @@ public class JWTUtil {
     public static String getUsername(String token) {
         try {
             DecodedJWT jwt = JWT.decode(token);
-            return jwt.getClaim("username").asString();
+            return jwt.getClaim("openId").asString();
         } catch (JWTDecodeException e) {
             return null;
         }
@@ -62,16 +62,15 @@ public class JWTUtil {
                 return null;
             }
             DecodedJWT jwt = JWT.decode(token);
-            return jwt.getClaim("username").asString();
+            return jwt.getClaim("openId").asString();
         } catch (JWTDecodeException e) {
             return null;
         }
     }
     public static String getCurrentUsernameByToken(String token) {
         try {
-            //String token=request.getHeader("token");
             DecodedJWT jwt = JWT.decode(token);
-            return jwt.getClaim("username").asString();
+            return jwt.getClaim("openId").asString();
         } catch (JWTDecodeException e) {
             return null;
         }
@@ -85,14 +84,12 @@ public class JWTUtil {
             Calendar calendar = Calendar.getInstance();
             Date date = new Date(System.currentTimeMillis());
             calendar.setTime(date);
-//        calendar.add(Calendar.WEEK_OF_YEAR, -1);
             calendar.add(Calendar.YEAR, 10);
-//            calendar.add(Calendar.DATE, 1);
             date = calendar.getTime();
             Algorithm algorithm = Algorithm.HMAC256(secret);
             // 附带username信息
             return JWT.create()
-                    .withClaim("username", username)
+                    .withClaim("openId", username)
                     .withExpiresAt(date)
                     .sign(algorithm);
         } catch (UnsupportedEncodingException e) {
@@ -109,11 +106,5 @@ public class JWTUtil {
         LocalDate createdAt = LocalDate.now();
         long daysDiff = ChronoUnit.DAYS.between(createdAt, updatedAt);
         System.out.println(daysDiff);
-//        String a = "比如说";
-//        String b = "http://powzvcuec.bkt.clouddn.com/人工智能.jpg";
-//        Integer i = a.length();
-//        Integer l = b.length();
-//        System.out.println("i = : "+i);
-//        System.out.println("l = : "+l);
     }
 }

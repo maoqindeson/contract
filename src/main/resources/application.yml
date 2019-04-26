@@ -1,0 +1,123 @@
+# Tomcat
+server:
+    tomcat:
+        uri-encoding: UTF-8
+        max-threads: 1000
+        min-spare-threads: 30
+    port: 8083
+    connection-timeout: 5000
+
+spring:
+    mvc:
+        view:
+            prefix: /
+            suffix: .html
+    # ���� dev|test|prod
+    profiles:
+        active: dev
+    # jacksonʱ���ʽ��
+    jackson:
+        time-zone: GMT+8
+        date-format: yyyy-MM-dd HH:mm:ss
+    http:
+        multipart:
+            max-file-size: 100MB
+            max-request-size: 100MB
+            enabled: true
+    redis:
+        open: false  # �Ƿ���redis����  true����   false�ر�
+        database: 0
+        host: localhost
+        port: 6379
+        password:       # ���루Ĭ��Ϊ�գ�
+        timeout: 6000  # ���ӳ�ʱʱ�������룩
+        pool:
+            max-active: 1000  # ���ӳ������������ʹ�ø�ֵ��ʾû�����ƣ�
+            max-wait: -1      # ���ӳ���������ȴ�ʱ�䣨ʹ�ø�ֵ��ʾû�����ƣ�
+            max-idle: 10      # ���ӳ��е�����������
+            min-idle: 5       # ���ӳ��е���С��������
+
+
+#mybatis
+mybatis-plus:
+  mapper-locations: classpath:/mapper/*.xml
+  #ʵ��ɨ�裬���package�ö��Ż��߷ֺŷָ�
+  typeAliasesPackage: io.renren.modules.generator.entity
+  global-config:
+    #��������  0:"���ݿ�ID����", 1:"�û�����ID",2:"ȫ��ΨһID (��������ΨһID)", 3:"ȫ��ΨһID UUID";
+    id-type: 0
+    #�ֶβ��� 0:"�����ж�",1:"�� NULL �ж�"),2:"�ǿ��ж�"
+    field-strategy: 2
+    #�շ��»���ת��
+    db-column-underline: true
+    #ˢ��mapper ��������
+    refresh-mapper: true
+    #���ݿ��д�»���ת��
+    #capital-mode: true
+    #���нӿ�ʵ��������
+    #key-generator: com.baomidou.springboot.xxx
+    #�߼�ɾ������
+    logic-delete-value: -1
+    logic-not-delete-value: 0
+    #�Զ��������Խӿ�ʵ��
+    #meta-object-handler: com.baomidou.springboot.xxx
+    #�Զ���SQLע����
+  configuration:
+    map-underscore-to-camel-case: true
+    cache-enabled: false
+    call-setters-on-nulls: true
+
+contract:
+    wechat:
+      appId: wxecd8c4fbea0e9ef1
+      appSecret: 6cb51c4ceae9ed6893f6429336515dab
+      fitingroomAppId: wx89eb0ae355822f99
+      fitingroomAppSecret: f01024f771f8f0212590f1dd43a9cfd7
+      grantType: authorization_code
+      mchId: 1252369901
+      key: RdFN333cKAFRaJVHu4xrt4QX5gADTaYk
+      notifyUrl: https://debug.wemall.ps.cikers.com/cikers/wechat/notify
+      TRADETYPE: JSAPI
+#      host: http://lan.debug.api.ps.cikers.com:10418/mall/v1.0
+      host: http://newstack.cikers.com:10422/mall/v1.0
+#      host: http://api.ps.cikers.com/mall/v1.0
+      exportfile: D:/export
+      importfile: D:/import
+      weblocation: http\://localhost\:5999/export
+      templateId: htK8H-7AKYF1NMVt1qeXjt7ThWP60b9GkBQWDKNCF5k
+      earningsTemplateId: qtIC8vfk6qoV1qb03Ok16q4prvJ-ivQaNWSikSy2mn8
+      friendOrderTemplateId: qtIC8vfk6qoV1qb03Ok16sp5HjIDGnSuEqREoKmrhaE
+      collectOrderTemplateId: Wo9jhtzLah2dBvY-z5qQG0PdtcfEFk8N-YBYV1X45EU
+      collectOrderPaymentTemplateId: u1aTZL0Aah_I4Hfn8aQezBoHONKKoqtTD8hSgHPbMOs
+      orderExpressTemplateId: QhSZGtZzCHVsUPeLwjLf-ydR0kLveG9yEsXkw9rqKhQ
+      #待领取模板消息id
+      couponUnclaimedTemplateId: jWQy4fm-gzSAcvctqFWMUR2PEb_n8QOZPQIKvP0RBDE
+      #领取成功模板消息id
+      couponTakedTemplateId: jWQy4fm-gzSAcvctqFWMUXxBbrfwYU1i9zoW9zu2qn0
+      #快到期模板消息id
+      couponWillExpiredTemplateId: jWQy4fm-gzSAcvctqFWMUXxBbrfwYU1i9zoW9zu2qn0
+      #已过期模板消息id
+      couponExpiredTemplateId: jWQy4fm-gzSAcvctqFWMUWM2F9Yf5WapjNqcbKREmIA
+      #已使用模板消息id
+      couponUsedTemplateId: jWQy4fm-gzSAcvctqFWMUZ8olp-Ie5Jmh2_eqHzenHE
+
+      certPath: C:\\Users\\Administrator\\Desktop\\ciker\procert\\apiclient_cert.p12
+      cikerscertPath: C:\\Users\\Administrator\\Desktop\\ciker\procert\\apiclient_cert.p12
+      sendRedPacketUrl:  https://api.mch.weixin.qq.com/mmpaymkttransfers/sendredpack
+      wxOfficialAppId: wx3bd5aefa8786691d
+    server:
+#      host:  http://lan.debug.api.ps.cikers.com:10418/mall/v1.0
+      host: http://newstack.cikers.com:10422/mall/v1.0
+#      host: http://api.ps.cikers.com/mall/v1.0
+
+      cikersHost: https://debug.ps.cikers.com
+      jsonFilePath: C:\Users\Administrator\Desktop\文特json\\
+      exportfile: D:/export
+      importfile: D:/import
+      weblocation: http\://localhost\:5999/export
+    jwt:
+        # 加密秘钥
+        secret: f4e2e52034348f86b67cde581c0f9eb5
+        # token有效时长，7天，单位秒
+        expire: 604800
+        header: token

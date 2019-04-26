@@ -1,25 +1,21 @@
 package com.contract.wechat.server.controller;
 
-import com.alibaba.druid.sql.dialect.mysql.ast.statement.MySqlShowCreateDatabaseStatement;
-import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
-import com.baomidou.mybatisplus.mapper.Wrapper;
 import com.contract.wechat.server.aop.WebRecord;
 import com.contract.wechat.server.entity.UserEntity;
 import com.contract.wechat.server.form.WechatLoginForm;
 import com.contract.wechat.server.service.UserService;
-import com.contract.wechat.server.utils.AesCbcUtil;
 import com.contract.wechat.server.utils.BaseResp;
 import com.contract.wechat.server.utils.wechat.JWTUtil;
 import com.contract.wechat.server.utils.wechat.StringTools;
 import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.annotations.Authorization;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import net.sf.json.JSONObject;
-import org.apache.commons.lang.StringUtils;
+import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -28,13 +24,12 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import static net.sf.json.JSONObject.fromObject;
 
-@lombok.Data
+@Data
 @Slf4j
 @RestController
 @RequestMapping("/wechat")
@@ -57,7 +52,6 @@ public class UserController {
     private String withdrawKey;
     private String host;
     private String certPath;
-    private String cikerscertPath;
     private String sendRedPacketUrl;
     private String wxOfficialAppId;
 
@@ -77,29 +71,27 @@ public class UserController {
             return BaseResp.error("小程序登录接口返回结果为空");
         }
         JSONObject rsJosn = fromObject(result);
-        String openId = null;
-        if (null != rsJosn.get("openid")) {
-            openId = rsJosn.get("openid").toString();
-        } else {
+        if (rsJosn.get("openid") == null) {
             log.error("小程序登录接口无法获得openid");
-
             return BaseResp.error("小程序登录接口无法获得openid");
         }
-            //如果通过open_id能查出存在用户，则直接返回用户信息
-            synchronized (this) {
-                if (0 == userService.selectCount(new EntityWrapper<UserEntity>().eq("open_id",openId)) ) {
-                    //抽空不全插入检查，唯一键等；
-                    UserEntity userEntity = new UserEntity();
-                    userEntity.setOpenId(openId);
-                    userEntity.setAvatarUrl(avatarUrl);
-                    userEntity.setNickName(nickName);
-                    userEntity.setGender(gender);
-                    userEntity.setCreatedAt(LocalDateTime.now());
-                    if (!userService.insert(userEntity)) {
-                        return BaseResp.error("登陆接口插入用户数据失败,用户openid为" + openId + "昵称为" + nickName );
-                    }
+        String openId = rsJosn.get("openid").toString();
+        //如果通过open_id能查出存在用户，则直接返回用户信息
+        synchronized (this) {
+            if (0 == userService.selectCount(new EntityWrapper<UserEntity>().eq("open_id", openId))) {
+                //抽空不全插入检查，唯一键等；
+                UserEntity userEntity = new UserEntity();
+                userEntity.setOpenId(openId);
+                userEntity.setAvatarUrl(avatarUrl);
+                userEntity.setNickName(nickName);
+                userEntity.setGender(gender);
+                userEntity.setCreatedAt(LocalDateTime.now());
+                boolean bl = userService.insert(userEntity);
+                if (!bl) {
+                    return BaseResp.error("登陆接口插入用户数据失败,用户openid为" + openId + "昵称为" + nickName);
                 }
             }
+        }
         String token = JWTUtil.sign(openId);
         Map<String, Object> map = new HashMap<>();
         map.put("openId", openId);
@@ -109,15 +101,19 @@ public class UserController {
 
     //微信授权登录后的手机号码登录
     @WebRecord
-    @PostMapping("login")
-    public BaseResp login(String mobile, String verifycode, HttpServletRequest request) {
-        String openId = JWTUtil.getCurrentUsername(request);
+    @PostMapping("mobileLogin")
+    @RequiresAuthentication
+    public BaseResp mobileLogin(String mobile, String verifycode, HttpServletRequest request) {
         //判断验证码是否正确
-        //如果正确,则更新openId对应用户的手机号
-        UserEntity userEntity = userService.selectOne(new EntityWrapper<UserEntity>().eq("open_id",openId));
-        userEntity.setMobile(mobile);
-        userEntity.setUpdatedAt(LocalDateTime.now());
-        userService.updateById(userEntity);
-        return BaseResp.ok("登录成功");
+        String openId = JWTUtil.getCurrentUsername(request);
+        Integer i = userService.selectCount(new EntityWrapper<UserEntity>().eq("open_id",openId));
+        if(i == 0){
+           return BaseResp.error("没有您的合同");
+        }
+        String token = JWTUtil.sign(openId);
+        Map<String,Object>map = new HashMap<>();
+        map.put("openId",openId);
+        map.put("token",token);
+        return BaseResp.ok("登陆成功",map);
     }
 }

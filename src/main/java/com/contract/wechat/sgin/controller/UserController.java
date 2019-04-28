@@ -16,10 +16,7 @@ import net.sf.json.JSONObject;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
@@ -57,10 +54,25 @@ public class UserController {
     private String wxOfficialAppId;
 
     @WebRecord
-    @PostMapping("test")
-    public BaseResp test(){
-        List<UserEntity>list =userService.selectList(new EntityWrapper<UserEntity>());
-        return BaseResp.ok(list);
+    @GetMapping ("/getUserByMobile")
+    public BaseResp getUserByMobile(String mobile){
+        if(StringTools.isNullOrEmpty(mobile)){
+            log.warn("手机号码不能为空");
+            return BaseResp.error("手机号码不能为空");
+        }
+        try{
+            UserEntity userEntity =userService.selectOne(new EntityWrapper<UserEntity>().eq("mobile",mobile));
+            if(userEntity==null){
+                log.error("查不到用户");
+                return BaseResp.error("查不到用户");
+            }
+            log.info("查询成功"+userEntity);
+            return BaseResp.ok(userEntity);
+        }catch (Exception e){
+            e.printStackTrace();
+            log.error("查询异常"+e);
+        }
+        return BaseResp.error("查询失败");
     }
 
     @WebRecord

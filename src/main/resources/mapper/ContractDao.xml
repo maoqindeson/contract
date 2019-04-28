@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 
-<mapper namespace="com.contract.wechat.server.dao.ContractDao">
+<mapper namespace="com.contract.wechat.sgin.dao.ContractDao">
 
     <!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.contract.wechat.server.entity.ContractEntity" id="ContractMap">
+    <resultMap type="com.contract.wechat.sgin.entity.ContractEntity" id="ContractMap">
         <result property="id" column="id"/>
         <result property="contractName" column="contract_name"/>
         <result property="content" column="content"/>

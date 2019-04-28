@@ -9,6 +9,7 @@ import com.contract.wechat.sgin.service.UserService;
 import com.contract.wechat.sgin.utils.BaseResp;
 import com.contract.wechat.sgin.utils.wechat.JWTUtil;
 import com.contract.wechat.sgin.utils.wechat.StringTools;
+import com.sun.xml.internal.rngom.parse.host.Base;
 import io.swagger.annotations.Api;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -54,46 +55,84 @@ public class UserController {
     private String wxOfficialAppId;
 
     @WebRecord
-    @GetMapping ("/getUserByMobile")
-    public BaseResp getUserByMobile(String mobile){
-        if(StringTools.isNullOrEmpty(mobile)){
+    @GetMapping("/getUserByMobile")
+    public BaseResp getUserByMobile(String mobile) {
+        if (StringTools.isNullOrEmpty(mobile)) {
             log.warn("手机号码不能为空");
             return BaseResp.error("手机号码不能为空");
         }
-        try{
-            UserEntity userEntity =userService.selectOne(new EntityWrapper<UserEntity>().eq("mobile",mobile));
-            if(userEntity==null){
+        try {
+            UserEntity userEntity = userService.selectOne(new EntityWrapper<UserEntity>().eq("mobile", mobile));
+            if (userEntity == null) {
                 log.error("查不到用户");
                 return BaseResp.error("查不到用户");
             }
-            log.info("查询成功"+userEntity);
+            log.info("查询成功" + userEntity);
             return BaseResp.ok(userEntity);
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            log.error("查询异常"+e);
+            log.error("查询异常" + e);
         }
         return BaseResp.error("查询失败");
     }
 
     @WebRecord
-    @GetMapping ("/deleteUserByMobile")
-    public BaseResp deleteUserByMobile(String mobile){
-        if(StringTools.isNullOrEmpty(mobile)){
-            log.warn("手机号不能为空,手机号是"+mobile);
+    @GetMapping("/deleteUserByMobile")
+    public BaseResp deleteUserByMobile(String mobile) {
+        if (StringTools.isNullOrEmpty(mobile)) {
+            log.warn("手机号不能为空,手机号是" + mobile);
             return BaseResp.error("手机号不能为空");
         }
         try {
-            boolean  bl = userService.delete(new EntityWrapper<UserEntity>().eq("mobile",mobile));
-            if (bl==false){
+            boolean bl = userService.delete(new EntityWrapper<UserEntity>().eq("mobile", mobile));
+            if (bl == false) {
                 log.error("删除失败,请重试");
                 return BaseResp.error("删除失败,请重试");
             }
             return BaseResp.ok("删除成功");
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
-            log.error("删除异常"+e);
+            log.error("删除异常" + e);
         }
-     return BaseResp.error("删除失败");
+        return BaseResp.error("删除失败");
+    }
+
+    @WebRecord
+    @PostMapping("/insert")
+    public BaseResp insert(String userName, String mobile, String idCard, String department) {
+        if (StringTools.isNullOrEmpty(userName)) {
+            log.warn("用户名不能空");
+            return BaseResp.error("用户名不能空");
+        }
+        if (StringTools.isNullOrEmpty(mobile)) {
+            log.warn("手机号不能空");
+            return BaseResp.error("手机号不能空");
+        }
+        if (StringTools.isNullOrEmpty(idCard)) {
+            log.warn("身份证不能空");
+            return BaseResp.error("身份证不能空");
+        }
+        if (StringTools.isNullOrEmpty(department)) {
+            log.warn("部门不能空");
+            return BaseResp.error("部门不能空");
+        }
+        UserEntity userEntity = new UserEntity();
+        userEntity.setUsername(userName);
+        userEntity.setMobile(mobile);
+        userEntity.setIdCard(idCard);
+        userEntity.setDepartment(department);
+        try {
+            boolean bl = userService.insert(userEntity);
+            if (bl == false) {
+                log.error("插入失败");
+                return BaseResp.error("插入失败");
+            }
+            return BaseResp.ok("插入成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("插入异常");
+        }
+        return BaseResp.error("插入失败");
     }
 
 
@@ -149,15 +188,15 @@ public class UserController {
     public BaseResp mobileLogin(String mobile, String verifycode, HttpServletRequest request) {
         //判断验证码是否正确
         String openId = JWTUtil.getCurrentUsername(request);
-        Integer i = userService.selectCount(new EntityWrapper<UserEntity>().eq("open_id",openId));
-        if(i == 0){
+        Integer i = userService.selectCount(new EntityWrapper<UserEntity>().eq("open_id", openId));
+        if (i == 0) {
             log.error("没有您的合同");
-           return BaseResp.error("没有您的合同");
+            return BaseResp.error("没有您的合同");
         }
         String token = JWTUtil.sign(openId);
-        Map<String,Object>map = new HashMap<>();
-        map.put("openId",openId);
-        map.put("token",token);
-        return BaseResp.ok("登陆成功",map);
+        Map<String, Object> map = new HashMap<>();
+        map.put("openId", openId);
+        map.put("token", token);
+        return BaseResp.ok("登陆成功", map);
     }
 }

@@ -153,7 +153,7 @@ public class UserController {
                 log.error("用户不存在,请注册");
                 return BaseResp.error("用户不存在,请注册");
             }
-            if(!StringTools.encryStr(userEntity.getPassword()).equalsIgnoreCase(password)){
+            if(!StringTools.encryStr(password).equalsIgnoreCase(userEntity.getPassword())){
                 log.error("用户密码错误");
                 return BaseResp.error("用户密码错误");
             }

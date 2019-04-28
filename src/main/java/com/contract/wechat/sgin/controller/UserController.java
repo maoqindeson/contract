@@ -99,8 +99,8 @@ public class UserController {
 
     @WebRecord
     @PostMapping("/insert")
-    public BaseResp insert(String userName, String mobile, String idCard, String department) {
-        if (StringTools.isNullOrEmpty(userName)) {
+    public BaseResp insert(String username, String mobile, String idCard, String department) {
+        if (StringTools.isNullOrEmpty(username)) {
             log.warn("用户名不能空");
             return BaseResp.error("用户名不能空");
         }
@@ -117,7 +117,7 @@ public class UserController {
             return BaseResp.error("部门不能空");
         }
         UserEntity userEntity = new UserEntity();
-        userEntity.setUsername(userName);
+        userEntity.setUsername(username);
         userEntity.setMobile(mobile);
         userEntity.setIdCard(idCard);
         userEntity.setDepartment(department);

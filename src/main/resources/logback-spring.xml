@@ -26,10 +26,10 @@
                 </Pattern>
             </layout>
         </appender>
-        <root level="DEBUG">
+        <root level="INFO">
             <appender-ref ref="console" />
         </root>
-        <root level="DEBUG">
+        <root level="WARN">
             <appender-ref ref="logFile" />
         </root>
     </springProfile>

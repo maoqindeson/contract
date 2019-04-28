@@ -14,7 +14,7 @@ spring:
             suffix: .html
     # ���� dev|test|prod
     profiles:
-        active: dev
+        active: test
     # jacksonʱ���ʽ��
     jackson:
         time-zone: GMT+8

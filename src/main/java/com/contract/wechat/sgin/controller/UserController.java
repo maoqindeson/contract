@@ -1,5 +1,6 @@
 package com.contract.wechat.sgin.controller;
 
+import com.baomidou.mybatisplus.mapper.BaseMapper;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.contract.wechat.sgin.aop.WebRecord;
 import com.contract.wechat.sgin.entity.UserEntity;
@@ -24,6 +25,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.servlet.http.HttpServletRequest;
 import java.time.LocalDateTime;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static net.sf.json.JSONObject.fromObject;
@@ -54,6 +56,12 @@ public class UserController {
     private String sendRedPacketUrl;
     private String wxOfficialAppId;
 
+    @WebRecord
+    @PostMapping("test")
+    public BaseResp test(){
+        List<UserEntity>list =userService.selectList(new EntityWrapper<UserEntity>());
+        return BaseResp.ok(list);
+    }
 
     @WebRecord
     @PostMapping("login")

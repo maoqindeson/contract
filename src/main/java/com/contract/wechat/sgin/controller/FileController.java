@@ -142,6 +142,7 @@ public class FileController {
             return BaseResp.error("请上传文件");
         }
         String strDir = importfile;
+//        log.warn("");
         String fileName = file.getOriginalFilename();
         if (!fileName.contains("xlsx")) {
             return BaseResp.error("请重新上传,文件必须为.xlsx拓展名格式");
@@ -163,9 +164,10 @@ public class FileController {
             BaseResp baseResp = userService.importUsers(fullName);
             return baseResp;
         } catch (Exception e) {
+            log.error("error: "+e);
             e.printStackTrace();
         }
-        return null;
+        return BaseResp.error();
     }
 
     /**

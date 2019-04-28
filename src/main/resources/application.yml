@@ -81,8 +81,8 @@ contract:
 #      host: http://lan.debug.api.ps.cikers.com:10418/mall/v1.0
       host: http://newstack.cikers.com:10422/mall/v1.0
 #      host: http://api.ps.cikers.com/mall/v1.0
-      exportfile: D:/export
-      importfile: D:/import
+      exportfile: /root/maoqin/export
+      importfile: /root/maoqin/import
       weblocation: http\://localhost\:5999/export
       templateId: htK8H-7AKYF1NMVt1qeXjt7ThWP60b9GkBQWDKNCF5k
       earningsTemplateId: qtIC8vfk6qoV1qb03Ok16q4prvJ-ivQaNWSikSy2mn8

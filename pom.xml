@@ -9,9 +9,9 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.contract.wechat</groupId>
-    <artifactId>server</artifactId>
+    <artifactId>sgin</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>server</name>
+    <name>sgin</name>
     <description>Demo project for Spring Boot</description>
 
     <properties>

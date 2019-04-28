@@ -122,6 +122,11 @@ public class UserController {
         userEntity.setIdCard(idCard);
         userEntity.setDepartment(department);
         try {
+           UserEntity user =  userService.selectOne(new EntityWrapper<UserEntity>().eq("mobile",mobile));
+           if(user!=null){
+               log.error("用户存在");
+               return BaseResp.error("用户存在");
+           }
             boolean bl = userService.insert(userEntity);
             if (bl == false) {
                 log.error("插入失败");
@@ -135,6 +140,36 @@ public class UserController {
         return BaseResp.error("插入失败");
     }
 
+    @WebRecord
+    @PostMapping("/updateDepartmentByMobile")
+    public BaseResp updateUsernameByMobile(String department,String mobile){
+        if(StringTools.isNullOrEmpty(department)){
+            log.warn("用户名不能为空");
+            return BaseResp.error("用户名不能为空");
+        }
+        if(StringTools.isNullOrEmpty(mobile)){
+            log.warn("手机号不能为空");
+            return BaseResp.error("手机号不能为空");
+        }
+        try{
+            UserEntity userEntity = userService.selectOne(new EntityWrapper<UserEntity>().eq("mobile",mobile));
+            if(userEntity==null){
+                log.error("用户不存在");
+                return BaseResp.error("用户不存在");
+            }
+            userEntity.setDepartment(department);
+            boolean bl = userService.updateById(userEntity);
+            if(bl!=true){
+                log.error("更新失败");
+                return BaseResp.error("更新失败");
+            }
+            return BaseResp.ok("更新成功");
+        }catch (Exception e){
+            e.printStackTrace();
+            log.error("更新异常");
+        }
+        return BaseResp.error("更新失败");
+    }
 
     @WebRecord
     @PostMapping("login")

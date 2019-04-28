@@ -9,6 +9,9 @@
         <result property="username" column="username"/>
         <result property="mobile" column="mobile"/>
         <result property="idCard" column="id_card"/>
+        <result property="password" column="password"/>
+        <result property="status" column="status"/>
+        <result property="role" column="role"/>
         <result property="openId" column="open_id"/>
         <result property="unionId" column="union_id"/>
         <result property="nickName" column="nick_name"/>

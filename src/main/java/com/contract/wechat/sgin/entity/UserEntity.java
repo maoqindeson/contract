@@ -11,6 +11,9 @@ public class UserEntity extends BaseEntity implements Serializable {
     private String username;
     private String mobile;
     private String idCard;
+    private String password;
+    private String status;
+    private String role;
     private String department;
     private String openId;
     private String unionId;

@@ -17,6 +17,7 @@ import net.sf.json.JSONObject;
 import org.apache.shiro.authz.annotation.RequiresAuthentication;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.jdbc.support.incrementer.AbstractDataFieldMaxValueIncrementer;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 
@@ -53,6 +54,7 @@ public class UserController {
     private String certPath;
     private String sendRedPacketUrl;
     private String wxOfficialAppId;
+
 
     @WebRecord
     @GetMapping("/getUserByMobile")
@@ -98,73 +100,102 @@ public class UserController {
     }
 
     @WebRecord
-    @PostMapping("/insert")
-    public BaseResp insert(String username, String mobile, String idCard, String department) {
+    @PostMapping("/adminInsert")
+    public BaseResp adminInsert(String username, String password) throws Exception {
         if (StringTools.isNullOrEmpty(username)) {
             log.warn("用户名不能空");
             return BaseResp.error("用户名不能空");
         }
-        if (StringTools.isNullOrEmpty(mobile)) {
-            log.warn("手机号不能空");
-            return BaseResp.error("手机号不能空");
+        if (StringTools.isNullOrEmpty(password)) {
+            log.warn("密码不能空");
+            return BaseResp.error("密码不能空");
         }
-        if (StringTools.isNullOrEmpty(idCard)) {
-            log.warn("身份证不能空");
-            return BaseResp.error("身份证不能空");
-        }
-        if (StringTools.isNullOrEmpty(department)) {
-            log.warn("部门不能空");
-            return BaseResp.error("部门不能空");
-        }
+        String status = "open";
+        String role = "admin";
         UserEntity userEntity = new UserEntity();
         userEntity.setUsername(username);
-        userEntity.setMobile(mobile);
-        userEntity.setIdCard(idCard);
-        userEntity.setDepartment(department);
+        userEntity.setPassword(StringTools.encryStr(password));
+        userEntity.setStatus(status);
+        userEntity.setRole(role);
         try {
-           UserEntity user =  userService.selectOne(new EntityWrapper<UserEntity>().eq("mobile",mobile));
-           if(user!=null){
-               log.error("用户存在");
-               return BaseResp.error("用户存在");
-           }
+            UserEntity user = userService.selectOne(new EntityWrapper<UserEntity>().eq("username", username));
+            if (user != null) {
+                log.error("用户已存在");
+                return BaseResp.error("用户已存在");
+            }
             boolean bl = userService.insert(userEntity);
             if (bl == false) {
-                log.error("插入失败");
-                return BaseResp.error("插入失败");
+                log.error("注册失败");
+                return BaseResp.error("注册失败");
             }
-            return BaseResp.ok("插入成功");
+            return BaseResp.ok("注册成功");
         } catch (Exception e) {
             e.printStackTrace();
-            log.error("插入异常");
+            log.error("注册异常");
         }
-        return BaseResp.error("插入失败");
+        return BaseResp.error("注册失败");
     }
 
     @WebRecord
-    @PostMapping("/updateDepartmentByMobile")
-    public BaseResp updateUsernameByMobile(String department,String mobile){
-        if(StringTools.isNullOrEmpty(department)){
+    @PostMapping("/adminLogin")
+    public BaseResp adminLogin(String username, String password) {
+        if (StringTools.isNullOrEmpty(username)) {
             log.warn("用户名不能为空");
             return BaseResp.error("用户名不能为空");
         }
-        if(StringTools.isNullOrEmpty(mobile)){
+        if (StringTools.isNullOrEmpty(password)) {
+            log.warn("密码不能为空");
+            return BaseResp.error("密码不能为空");
+        }
+        try {
+            UserEntity userEntity = userService.selectOne(new EntityWrapper<UserEntity>().eq("username", username));
+            if (userEntity == null) {
+                log.error("用户不存在,请注册");
+                return BaseResp.error("用户不存在,请注册");
+            }
+            if(!StringTools.encryStr(userEntity.getPassword()).equalsIgnoreCase(password)){
+                log.error("用户密码错误");
+                return BaseResp.error("用户密码错误");
+            }
+            String token = JWTUtil.sign(username);
+            if (StringTools.isNullOrEmpty(token)) {
+                log.error("获取token失败");
+                return BaseResp.error("登入失败");
+            }
+            return BaseResp.ok("登入成功,token是:" + token);
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("登入异常" + e);
+        }
+        return BaseResp.error("登入失败");
+    }
+
+
+    @WebRecord
+    @PostMapping("/updateDepartmentByMobile")
+    public BaseResp updateUsernameByMobile(String department, String mobile) {
+        if (StringTools.isNullOrEmpty(department)) {
+            log.warn("用户名不能为空");
+            return BaseResp.error("用户名不能为空");
+        }
+        if (StringTools.isNullOrEmpty(mobile)) {
             log.warn("手机号不能为空");
             return BaseResp.error("手机号不能为空");
         }
-        try{
-            UserEntity userEntity = userService.selectOne(new EntityWrapper<UserEntity>().eq("mobile",mobile));
-            if(userEntity==null){
+        try {
+            UserEntity userEntity = userService.selectOne(new EntityWrapper<UserEntity>().eq("mobile", mobile));
+            if (userEntity == null) {
                 log.error("用户不存在");
                 return BaseResp.error("用户不存在");
             }
             userEntity.setDepartment(department);
             boolean bl = userService.updateById(userEntity);
-            if(bl!=true){
+            if (bl != true) {
                 log.error("更新失败");
                 return BaseResp.error("更新失败");
             }
             return BaseResp.ok("更新成功");
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
             log.error("更新异常");
         }

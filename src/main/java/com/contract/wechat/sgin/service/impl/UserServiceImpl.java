@@ -42,8 +42,8 @@ public class UserServiceImpl extends ServiceImpl<UserDao, UserEntity> implements
             Map<String, ExportInfo> header = new LinkedHashMap<String, ExportInfo>();
             header.put("username", new ExportInfo("员工姓名"));
             header.put("mobile", new ExportInfo("手机号码"));
-            header.put("department", new ExportInfo("部门"));
             header.put("idCard", new ExportInfo("身份证"));
+            header.put("department", new ExportInfo("部门"));
             header.put("createdAt", new ExportInfo("创建时间"));
             if (list != null && !list.isEmpty()) {
                 excelUtil.export2XlsWithInfo(list, header, filepath);

@@ -76,6 +76,28 @@ public class UserController {
     }
 
     @WebRecord
+    @GetMapping ("/deleteUserByMobile")
+    public BaseResp deleteUserByMobile(String mobile){
+        if(StringTools.isNullOrEmpty(mobile)){
+            log.warn("手机号不能为空,手机号是"+mobile);
+            return BaseResp.error("手机号不能为空");
+        }
+        try {
+            boolean  bl = userService.delete(new EntityWrapper<UserEntity>().eq("mobile",mobile));
+            if (bl==false){
+                log.error("删除失败,请重试");
+                return BaseResp.error("删除失败,请重试");
+            }
+            return BaseResp.ok("删除成功");
+        }catch (Exception e){
+            e.printStackTrace();
+            log.error("删除异常"+e);
+        }
+     return BaseResp.error("删除失败");
+    }
+
+
+    @WebRecord
     @PostMapping("login")
     public BaseResp login(@RequestBody WechatLoginForm wechatLoginForm, String code) {
         String avatarUrl = wechatLoginForm.getAvatarUrl();

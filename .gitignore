@@ -17,4 +17,4 @@ mvnw
 */.cmd
 *.cmd
 .mvn
-lesson-log/*
+contract-log/*

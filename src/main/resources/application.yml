@@ -74,5 +74,5 @@ contract:
       grantType: authorization_code
       notifyUrl: https://debug.wemall.ps.cikers.com/cikers/wechat/notify
       TRADETYPE: JSAPI
-      exportfile: /root/maoqin/export
-      importfile: /root/maoqin/import
+      exportfile: D:/export
+      importfile: D:/import

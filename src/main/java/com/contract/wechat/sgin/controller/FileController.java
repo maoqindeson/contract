@@ -1,6 +1,7 @@
 package com.contract.wechat.sgin.controller;
 
 import com.contract.wechat.sgin.service.ContractService;
+import com.contract.wechat.sgin.service.EmpolyeService;
 import com.contract.wechat.sgin.service.UserService;
 import com.contract.wechat.sgin.utils.BaseResp;
 import com.contract.wechat.sgin.utils.wechat.StringTools;
@@ -29,12 +30,14 @@ public class FileController {
     private UserService userService;
     @Autowired
     private ContractService contractService;
+    @Autowired
+    private EmpolyeService empolyeService;
     /**
      * 导出数据库用户的表格
      */
-    @RequestMapping(value = "/exportUser", produces = "text/plain")
-    public String exportUser(HttpServletResponse response) {
-        String filename = this.userService.exportCurrenPage2xls();
+    @RequestMapping(value = "/exportEmpolyeAll", produces = "text/plain")
+    public String exportEmpolyeAll(HttpServletResponse response) {
+        String filename = empolyeService.exportCurrenPage2xls();
         if (StringTools.isNullOrEmpty(filename)) {
             log.error("导出失败,filename为: " + filename);
             return null;
@@ -45,7 +48,7 @@ public class FileController {
             return "文件" + filename + "不存在";
         }
         response.setContentType("application/force-download");// 设置强制下载不打开
-        response.addHeader("Content-Disposition", "attachment;fileName=" + "userformidExcel");// 设置文件名
+        response.addHeader("Content-Disposition", "attachment;fileName=" + "employeformidExcel");// 设置文件名
         byte[] buffer = new byte[1024];
         FileInputStream fis = null;
         BufferedInputStream bis = null;
@@ -135,9 +138,9 @@ public class FileController {
     /**
      * 导入用户表格到数据库
      */
-    @PostMapping("/importUser")
+    @PostMapping("/importEmpolye")
     @ResponseBody
-    public BaseResp importUser(@RequestParam("file") MultipartFile file) {
+    public BaseResp importEmpolye(@RequestParam("file") MultipartFile file) {
         if (  file ==null || file.isEmpty()) {
             return BaseResp.error("请上传文件");
         }
@@ -161,7 +164,7 @@ public class FileController {
             os.flush();
             os.close();
             in.close();
-            BaseResp baseResp = userService.importUsers(fullName);
+            BaseResp baseResp = empolyeService.importEmpolye(fullName);
             return baseResp;
         } catch (Exception e) {
             log.error("error: "+e);

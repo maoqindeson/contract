@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.contract.wechat.sgin.dao.EmpolyeDao">
+
+    <!-- 可根据自己的需求，是否要使用 -->
+    <resultMap type="com.contract.wechat.sgin.entity.EmpolyeEntity" id="empolyeMap">
+        <result property="id" column="id"/>
+        <result property="name" column="name"/>
+        <result property="mobile" column="mobile"/>
+        <result property="idCard" column="id_card"/>
+        <result property="gender" column="gender"/>
+        <result property="deletedAt" column="deleted_at"/>
+        <result property="createdAt" column="created_at"/>
+        <result property="updatedAt" column="updated_at"/>
+    </resultMap>
+    <select id="getEmployeeAll" resultType="com.contract.wechat.sgin.form.EmployeeAll">
+      SELECT
+	tb_empolye. NAME AS empolyeName,
+	tb_empolye.gender,
+	tb_empolye.mobile,
+	tb_empolye.id_card AS idCard,
+	tb_company. NAME AS companyName,
+	tb_company. code,
+	tb_company.legal_person AS legalPerson,
+	tb_company.address,
+	tb_company.contacts,
+	tb_company.telephone,
+	tb_company.status AS companyStatus
+FROM
+	tb_empolye_company
+INNER JOIN tb_empolye ON tb_empolye_company.empolye_id =  tb_empolye.id
+INNER JOIN tb_company ON tb_empolye_company.company_id = tb_company.id
+    </select>
+</mapper>

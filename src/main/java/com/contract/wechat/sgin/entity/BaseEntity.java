@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 @Data
 public class BaseEntity {
     @TableId(value = "id",type = IdType.AUTO)
-    private int id;
+    private Integer id;
     private LocalDateTime createdAt;
     private LocalDateTime  updatedAt;
     private LocalDateTime  deletedAt;

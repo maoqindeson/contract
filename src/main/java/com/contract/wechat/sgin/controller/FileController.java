@@ -33,7 +33,7 @@ public class FileController {
     @Autowired
     private EmpolyeService empolyeService;
     /**
-     * 导出数据库用户的表格
+     * 导出数据库员工信息和所属公司信息
      */
     @RequestMapping(value = "/exportEmpolyeAll", produces = "text/plain")
     public String exportEmpolyeAll(HttpServletResponse response) {
@@ -136,7 +136,7 @@ public class FileController {
     }
 
     /**
-     * 导入用户表格到数据库
+     * 导入员工表格并实现了所属公司的关联到数据库
      */
     @PostMapping("/importEmpolye")
     @ResponseBody

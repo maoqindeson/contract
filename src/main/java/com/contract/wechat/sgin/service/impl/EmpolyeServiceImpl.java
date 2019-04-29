@@ -119,8 +119,8 @@ public class EmpolyeServiceImpl extends ServiceImpl<EmpolyeDao, EmpolyeEntity> i
                         empolyeCompanyEntity.setUpdatedAt(LocalDateTime.now());
                         boolean b = empolyeCompanyService.updateById(empolyeCompanyEntity);
                         if (!b) {
-                            log.error("插入员工公司关系表失败");
-                            return BaseResp.error("插入员工公司关系表失败");
+                            log.error("更新员工公司关系表失败");
+                            return BaseResp.error("更新员工公司关系表失败");
                         }
                     }
                 } else {

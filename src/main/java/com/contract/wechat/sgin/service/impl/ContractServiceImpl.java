@@ -94,8 +94,6 @@ public class ContractServiceImpl extends ServiceImpl<ContractDao, ContractEntity
                 }
                 //TODO 插入数据库
                 ContractEntity contractEntity = new ContractEntity();
-                contractEntity.setContractName(contractName);
-                contractEntity.setContent(content);
                 contractEntity.setCreatedAt(LocalDateTime.now());
                 boolean result = this.insert(contractEntity);
                 if (!result) {

@@ -1,5 +1,8 @@
 package com.contract.wechat.sgin.controller;
 
+import com.baomidou.mybatisplus.mapper.EntityWrapper;
+import com.contract.wechat.sgin.aop.WebRecord;
+import com.contract.wechat.sgin.entity.ContractEntity;
 import com.contract.wechat.sgin.service.ContractService;
 import com.contract.wechat.sgin.service.EmpolyeService;
 import com.contract.wechat.sgin.service.UserService;
@@ -16,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 
@@ -135,6 +139,57 @@ public class FileController {
         return null;
     }
 
+    @WebRecord
+    @RequestMapping("/downloadWordFile")
+    public String downloadFile( HttpServletResponse response, String fileName) {
+        if (StringTools.isNullOrEmpty(fileName)) {
+            return "请输入合同文件名";
+        }
+        ContractEntity contractEntity = contractService.selectOne(new EntityWrapper<ContractEntity>().eq("name",fileName));
+        if(contractEntity == null){
+            return "文件名不存在";
+        }
+        String wordFilePath = contractEntity.getPath();
+        File file = new File(wordFilePath, fileName + ".doc");
+        if (!file.exists()) {
+            log.warn("文件" + fileName + "不存在");
+            return "文件" + fileName + "不存在";
+        }
+        response.setContentType("application/force-download");// 设置强制下载不打开
+        response.addHeader("Content-Disposition", "attachment;fileName=" + fileName);// 设置文件名
+        byte[] buffer = new byte[1024];
+        FileInputStream fis = null;
+        BufferedInputStream bis = null;
+        try {
+            fis = new FileInputStream(file);
+            bis = new BufferedInputStream(fis);
+            OutputStream os = response.getOutputStream();
+            int i = bis.read(buffer);
+            while (i != -1) {
+                os.write(buffer, 0, i);
+                i = bis.read(buffer);
+            }
+            log.warn("下载成功");
+        } catch (Exception e) {
+            e.printStackTrace();
+        } finally {
+            if (bis != null) {
+                try {
+                    bis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            if (fis != null) {
+                try {
+                    fis.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        return null;
+    }
     /**
      * 导入员工表格并实现了所属公司的关联到数据库
      */
@@ -172,6 +227,8 @@ public class FileController {
         }
         return BaseResp.error();
     }
+
+
 
     /**
      * 导入合同表格到数据库

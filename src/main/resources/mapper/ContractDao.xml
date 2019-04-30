@@ -6,8 +6,15 @@
     <!-- 可根据自己的需求，是否要使用 -->
     <resultMap type="com.contract.wechat.sgin.entity.ContractEntity" id="ContractMap">
         <result property="id" column="id"/>
-        <result property="contractName" column="contract_name"/>
-        <result property="content" column="content"/>
+        <result property="name" column="name"/>
+        <result property="path" column="path"/>
+        <result property="company" column="company"/>
+        <result property="agent" column="agent"/>
+        <result property="telephone" column="telephone"/>
+        <result property="receiver" column="receiver"/>
+        <result property="validity" column="validity"/>
+        <result property="note" column="note"/>
+        <result property="status" column="status"/>
         <result property="deletedAt" column="deleted_at"/>
         <result property="createdAt" column="created_at"/>
         <result property="updatedAt" column="updated_at"/>

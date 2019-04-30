@@ -189,14 +189,17 @@ public class FileController {
 
     @WebRecord
     @RequestMapping("/downloadWordFile")
-    public String downloadFile(HttpServletResponse response, String fileName) {
-        if (StringTools.isNullOrEmpty(fileName)) {
-            return "请输入合同文件名";
+    public String downloadFile(HttpServletResponse response, Integer fileId) {
+        if (fileId==null || fileId==0) {
+            log.warn("请输入word文件ID");
+            return "请输入word文件ID";
         }
-        ContractFileEntity contractFileEntity = contractFileService.selectOne(new EntityWrapper<ContractFileEntity>().eq("name", fileName));
+        ContractFileEntity contractFileEntity = contractFileService.selectOne(new EntityWrapper<ContractFileEntity>().eq("id", fileId));
         if (contractFileEntity == null) {
+            log.error("文件名不存在");
             return "文件名不存在";
         }
+        String fileName = contractFileEntity.getName();
         String filePath = contractFileEntity.getPath();
         File file = new File(filePath, fileName + ".doc");
         if (!file.exists()) {

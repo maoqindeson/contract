@@ -76,3 +76,5 @@ contract:
       TRADETYPE: JSAPI
       exportfile: /root/maoqin/export
       importfile: /root/maoqin/import
+      wordFilePath: D:/wordFile
+

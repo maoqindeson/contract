@@ -3,9 +3,8 @@ package com.contract.wechat.sgin.controller;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.contract.wechat.sgin.aop.WebRecord;
 import com.contract.wechat.sgin.entity.ContractEntity;
-import com.contract.wechat.sgin.service.ContractService;
-import com.contract.wechat.sgin.service.EmpolyeService;
-import com.contract.wechat.sgin.service.UserService;
+import com.contract.wechat.sgin.entity.ContractFileEntity;
+import com.contract.wechat.sgin.service.*;
 import com.contract.wechat.sgin.utils.BaseResp;
 import com.contract.wechat.sgin.utils.wechat.StringTools;
 import lombok.Data;
@@ -19,9 +18,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 @Data
@@ -30,12 +31,18 @@ import java.io.*;
 @ConfigurationProperties(prefix = "contract.wechat")
 public class FileController {
     private String importfile;
+    private String wordFilePath;
     @Autowired
     private UserService userService;
+    @Autowired
+    private ContractFileService contractFileService;
     @Autowired
     private ContractService contractService;
     @Autowired
     private EmpolyeService empolyeService;
+    @Autowired
+    private CompanyService companyService;
+
     /**
      * 导出数据库员工信息和所属公司信息
      */
@@ -86,6 +93,47 @@ public class FileController {
             }
         }
         return null;
+    }
+
+    @WebRecord
+    @PostMapping("/uploadWordFile")
+    @ResponseBody
+    public String upload(@RequestParam("file") MultipartFile file) {
+        if (null == file || file.isEmpty()) {
+            return "请选择上传文件";
+        }
+        String saveFileName = file.getOriginalFilename();
+        String filePath = wordFilePath;
+        File saveFile = new File(filePath, saveFileName);
+        if (!saveFile.getParentFile().exists()) {
+            saveFile.getParentFile().mkdirs();
+        }
+        try {
+            BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(saveFile));
+            out.write(file.getBytes());
+            out.flush();
+            out.close();
+            String newFilePath = saveFileName.replace(".", ",");
+            List<String> result = Arrays.asList(newFilePath.split(","));
+           String name = result.get(0);
+           ContractFileEntity contractFileEntity = new ContractFileEntity();
+            contractFileEntity.setName(name);
+            contractFileEntity.setPath(filePath);
+            contractFileEntity.setCreatedAt(LocalDateTime.now());
+           boolean b = contractFileService.insert(contractFileEntity);
+           if(!b){
+               log.error("生成合同失败");
+               return "生成合同失败";
+           }
+           Integer fileId = contractFileEntity.getId();
+            return " 上传和生成合同成功,"+fileId;
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+            return "上传失败," + e.getMessage();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "上传失败," + e.getMessage();
+        }
     }
 
     /**
@@ -141,16 +189,16 @@ public class FileController {
 
     @WebRecord
     @RequestMapping("/downloadWordFile")
-    public String downloadFile( HttpServletResponse response, String fileName) {
+    public String downloadFile(HttpServletResponse response, String fileName) {
         if (StringTools.isNullOrEmpty(fileName)) {
             return "请输入合同文件名";
         }
-        ContractEntity contractEntity = contractService.selectOne(new EntityWrapper<ContractEntity>().eq("name",fileName));
-        if(contractEntity == null){
+        ContractFileEntity contractFileEntity = contractFileService.selectOne(new EntityWrapper<ContractFileEntity>().eq("name", fileName));
+        if (contractFileEntity == null) {
             return "文件名不存在";
         }
-        String wordFilePath = contractEntity.getPath();
-        File file = new File(wordFilePath, fileName + ".doc");
+        String filePath = contractFileEntity.getPath();
+        File file = new File(filePath, fileName + ".doc");
         if (!file.exists()) {
             log.warn("文件" + fileName + "不存在");
             return "文件" + fileName + "不存在";
@@ -190,13 +238,14 @@ public class FileController {
         }
         return null;
     }
+
     /**
      * 导入员工表格并实现了所属公司的关联到数据库
      */
     @PostMapping("/importEmpolye")
     @ResponseBody
     public BaseResp importEmpolye(@RequestParam("file") MultipartFile file) {
-        if (  file ==null || file.isEmpty()) {
+        if (file == null || file.isEmpty()) {
             return BaseResp.error("请上传文件");
         }
         String strDir = importfile;
@@ -222,12 +271,11 @@ public class FileController {
             BaseResp baseResp = empolyeService.importEmpolye(fullName);
             return baseResp;
         } catch (Exception e) {
-            log.error("error: "+e);
+            log.error("error: " + e);
             e.printStackTrace();
         }
         return BaseResp.error();
     }
-
 
 
     /**
@@ -236,7 +284,7 @@ public class FileController {
     @PostMapping("/importContract")
     @ResponseBody
     public BaseResp importContract(@RequestParam("file") MultipartFile file) {
-        if (  file ==null || file.isEmpty()) {
+        if (file == null || file.isEmpty()) {
             return BaseResp.error("请上传文件");
         }
         String strDir = importfile;
@@ -268,4 +316,5 @@ public class FileController {
         }
         return null;
     }
+
 }

@@ -4,10 +4,10 @@
 <mapper namespace="com.contract.wechat.sgin.dao.ContractDao">
 
     <!-- 可根据自己的需求，是否要使用 -->
-    <resultMap type="com.contract.wechat.sgin.entity.ContractEntity" id="ContractMap">
+    <resultMap type="com.contract.wechat.sgin.entity.ContractEntity" id="contractMap">
         <result property="id" column="id"/>
         <result property="name" column="name"/>
-        <result property="path" column="path"/>
+        <result property="fileId" column="file_id"/>
         <result property="company" column="company"/>
         <result property="agent" column="agent"/>
         <result property="telephone" column="telephone"/>

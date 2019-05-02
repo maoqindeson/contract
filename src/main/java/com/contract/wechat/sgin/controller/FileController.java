@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.imageio.stream.FileImageInputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.time.LocalDateTime;
@@ -95,10 +96,13 @@ public class FileController {
         return null;
     }
 
+    /**
+     * 上传word文档或图片到服务器,并插入到合同文件表
+     */
     @WebRecord
     @PostMapping("/uploadWordFile")
     @ResponseBody
-    public String upload(@RequestParam("file") MultipartFile file) {
+    public String uploadWordFile(@RequestParam("file") MultipartFile file) {
         if (null == file || file.isEmpty()) {
             return "请选择上传文件";
         }
@@ -187,8 +191,11 @@ public class FileController {
         return null;
     }
 
+    /**
+     * 从服务器下载word文件
+     */
     @WebRecord
-    @RequestMapping("/downloadWordFile")
+    @RequestMapping("/downloadFile")
     public String downloadFile(HttpServletResponse response, Integer fileId) {
         if (fileId==null || fileId==0) {
             log.warn("请输入word文件ID");
@@ -207,7 +214,7 @@ public class FileController {
             return "文件" + fileName + "不存在";
         }
         response.setContentType("application/force-download");// 设置强制下载不打开
-        response.addHeader("Content-Disposition", "attachment;fileName=" + fileName);// 设置文件名
+        response.addHeader("Content-Disposition", "attachment;fileName=fileName.doc");// 设置文件名
         byte[] buffer = new byte[1024];
         FileInputStream fis = null;
         BufferedInputStream bis = null;
@@ -238,6 +245,44 @@ public class FileController {
                     e.printStackTrace();
                 }
             }
+        }
+        return null;
+    }
+
+    @WebRecord
+    @RequestMapping("/downloadPicture")
+    public String downloadPicture(HttpServletResponse response, Integer fileId) {
+        if (fileId==null || fileId==0) {
+            log.warn("请输入文件ID");
+            return "请输入文件ID";
+        }
+        ContractFileEntity contractFileEntity = contractFileService.selectOne(new EntityWrapper<ContractFileEntity>().eq("id", fileId));
+        if (contractFileEntity == null) {
+            log.error("文件不存在");
+            return "文件不存在";
+        }
+        String filename = contractFileEntity.getName();
+        String filePath = contractFileEntity.getPath();
+        File file = new File(filePath, filename + ".jpg");
+        if (!file.exists()) {
+            log.warn("文件" + filename + "不存在");
+            return "文件" + filename + "不存在";
+        }
+        try {
+            FileImageInputStream  fis = new FileImageInputStream(file);
+            int streamLength = (int)fis.length();
+            byte[] image = new byte[streamLength ];
+            fis.read(image,0,streamLength);
+            fis.close();
+            response.setContentType("application/force-download");// 设置强制下载不打开
+            response.setHeader("Content-Disposition", "attachment;filename=filename.jpg");// 设置文件名
+            OutputStream os = response.getOutputStream();
+           os.write(image);
+           os.flush();
+           os.close();
+            log.warn("下载成功");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
         return null;
     }

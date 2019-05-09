@@ -69,7 +69,7 @@ public class EmpolyeServiceImpl extends ServiceImpl<EmpolyeDao, EmpolyeEntity> i
                 }
 
             }
-            int success = 0;
+             int success = 0;
             int faliure = 0;
             int update = 0;
             for (int i = 1; i < rows.size(); i++) {
@@ -119,8 +119,8 @@ public class EmpolyeServiceImpl extends ServiceImpl<EmpolyeDao, EmpolyeEntity> i
                         empolyeCompanyEntity.setUpdatedAt(LocalDateTime.now());
                         boolean b = empolyeCompanyService.updateById(empolyeCompanyEntity);
                         if (!b) {
-                            log.error("更新员工公司关系表失败");
-                            return BaseResp.error("更新员工公司关系表失败");
+                            log.error("插入员工公司关系表失败");
+                            return BaseResp.error("插入员工公司关系表失败");
                         }
                     }
                 } else {

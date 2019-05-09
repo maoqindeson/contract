@@ -6,9 +6,11 @@ import com.contract.wechat.sgin.entity.ContractEntity;
 import com.contract.wechat.sgin.entity.ContractFileEntity;
 import com.contract.wechat.sgin.service.*;
 import com.contract.wechat.sgin.utils.BaseResp;
+import com.contract.wechat.sgin.utils.PdfUtil;
 import com.contract.wechat.sgin.utils.wechat.StringTools;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Controller;
@@ -22,7 +24,9 @@ import javax.imageio.stream.FileImageInputStream;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 @Slf4j
@@ -32,7 +36,7 @@ import java.util.List;
 @ConfigurationProperties(prefix = "contract.wechat")
 public class FileController {
     private String importfile;
-    private String wordFilePath;
+    private String contractFilePath;
     @Autowired
     private UserService userService;
     @Autowired
@@ -96,49 +100,51 @@ public class FileController {
         return null;
     }
 
+
+
+
     /**
-     * 上传word文档或图片到服务器,并插入到合同文件表
+     * 上传PDF转图片到服务器,并插入到合同文件表,返回合同文件Id的list
      */
     @WebRecord
-    @PostMapping("/uploadWordFile")
+    @PostMapping("/uploadPdfFile")
     @ResponseBody
-    public String uploadWordFile(@RequestParam("file") MultipartFile file) {
+    public BaseResp uploadPdfFile(@RequestParam("file") MultipartFile file) throws IOException {
         if (null == file || file.isEmpty()) {
-            return "请选择上传文件";
-        }
-        String saveFileName = file.getOriginalFilename();
-        String filePath = wordFilePath;
-        File saveFile = new File(filePath, saveFileName);
-        if (!saveFile.getParentFile().exists()) {
-            saveFile.getParentFile().mkdirs();
+            return BaseResp.error("请选择上传文件");
         }
         try {
-            BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(saveFile));
-            out.write(file.getBytes());
-            out.flush();
-            out.close();
-            String newFilePath = saveFileName.replace(".", ",");
-            List<String> result = Arrays.asList(newFilePath.split(","));
-           String name = result.get(0);
-           ContractFileEntity contractFileEntity = new ContractFileEntity();
-            contractFileEntity.setName(name);
-            contractFileEntity.setPath(filePath);
-            contractFileEntity.setCreatedAt(LocalDateTime.now());
-           boolean b = contractFileService.insert(contractFileEntity);
-           if(!b){
-               log.error("生成合同失败");
-               return "生成合同失败";
-           }
-           Integer fileId = contractFileEntity.getId();
-            return " 上传和生成合同成功,"+fileId;
-        } catch (FileNotFoundException e) {
+        String saveFileName = file.getOriginalFilename();
+        String filePath = contractFilePath;
+        File pdfFile = new File(contractFilePath,saveFileName);
+        List<Integer>fileIds = new ArrayList<>();
+        FileUtils.copyInputStreamToFile(file.getInputStream(), pdfFile);
+
+            List<String> list = PdfUtil.pdfToImagePath(filePath +File.separator+ saveFileName, pdfFile);
+            //拿到pdf转成jpg的路径
+            for (int i = 0; i < list.size(); i++) {
+                String imagePath = list.get(i);
+                String fileDirectory = imagePath.substring(0, imagePath.lastIndexOf(File.separator));
+                ContractFileEntity contractFileEntity = new ContractFileEntity();
+                contractFileEntity.setName(String.valueOf(i));
+                contractFileEntity.setPath(fileDirectory);
+                contractFileEntity.setCreatedAt(LocalDateTime.now());
+                boolean b = contractFileService.insert(contractFileEntity);
+                if (!b) {
+                    log.error("插入合同文件失败");
+                    return BaseResp.error("插入合同文件失败");
+                }
+                fileIds.add(contractFileEntity.getId());
+            }
+            return BaseResp.ok("上传成功"+fileIds);
+        } catch (Exception e) {
             e.printStackTrace();
-            return "上传失败," + e.getMessage();
-        } catch (IOException e) {
-            e.printStackTrace();
-            return "上传失败," + e.getMessage();
+            log.error("上传文件异常");
         }
+        return BaseResp.error("上传失败");
+
     }
+
 
     /**
      * 导出数据库合同的表格
@@ -192,14 +198,14 @@ public class FileController {
     }
 
     /**
-     * 从服务器下载word文件
+     * 从服务器下载文件
      */
     @WebRecord
     @RequestMapping("/downloadFile")
     public String downloadFile(HttpServletResponse response, Integer fileId) {
-        if (fileId==null || fileId==0) {
-            log.warn("请输入word文件ID");
-            return "请输入word文件ID";
+        if (fileId == null || fileId == 0) {
+            log.warn("请输入文件ID");
+            return "请输入文件ID";
         }
         ContractFileEntity contractFileEntity = contractFileService.selectOne(new EntityWrapper<ContractFileEntity>().eq("id", fileId));
         if (contractFileEntity == null) {
@@ -208,13 +214,13 @@ public class FileController {
         }
         String fileName = contractFileEntity.getName();
         String filePath = contractFileEntity.getPath();
-        File file = new File(filePath, fileName + ".doc");
+        File file = new File(filePath, fileName + ".jpg");
         if (!file.exists()) {
             log.warn("文件" + fileName + "不存在");
             return "文件" + fileName + "不存在";
         }
         response.setContentType("application/force-download");// 设置强制下载不打开
-        response.addHeader("Content-Disposition", "attachment;fileName=fileName.doc");// 设置文件名
+        response.addHeader("Content-Disposition", "attachment;fileName=fileName.jpg");// 设置文件名
         byte[] buffer = new byte[1024];
         FileInputStream fis = null;
         BufferedInputStream bis = null;
@@ -252,7 +258,7 @@ public class FileController {
     @WebRecord
     @RequestMapping("/downloadPicture")
     public String downloadPicture(HttpServletResponse response, Integer fileId) {
-        if (fileId==null || fileId==0) {
+        if (fileId == null || fileId == 0) {
             log.warn("请输入文件ID");
             return "请输入文件ID";
         }
@@ -269,17 +275,17 @@ public class FileController {
             return "文件" + filename + "不存在";
         }
         try {
-            FileImageInputStream  fis = new FileImageInputStream(file);
-            int streamLength = (int)fis.length();
-            byte[] image = new byte[streamLength ];
-            fis.read(image,0,streamLength);
+            FileImageInputStream fis = new FileImageInputStream(file);
+            int streamLength = (int) fis.length();
+            byte[] image = new byte[streamLength];
+            fis.read(image, 0, streamLength);
             fis.close();
             response.setContentType("application/force-download");// 设置强制下载不打开
             response.setHeader("Content-Disposition", "attachment;filename=filename.jpg");// 设置文件名
             OutputStream os = response.getOutputStream();
-           os.write(image);
-           os.flush();
-           os.close();
+            os.write(image);
+            os.flush();
+            os.close();
             log.warn("下载成功");
         } catch (Exception e) {
             e.printStackTrace();
@@ -303,7 +309,7 @@ public class FileController {
             return BaseResp.error("请重新上传,文件必须为.xlsx拓展名格式");
         }
         File dir = new File(strDir);
-        String fullName = strDir + "/" + fileName;
+        String fullName = strDir + File.separator + fileName;
         try {
             if (dir.exists() || dir.mkdirs()) {
             }

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @TableName("tb_contract")
 public class ContractEntity extends BaseEntity implements Serializable {
     private String name;
-    private String fileId;
+    private String fileIds;
     private String company;
     private String agent;
     private String telephone;

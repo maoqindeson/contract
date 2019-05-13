@@ -8,6 +8,7 @@
         <result property="id" column="id"/>
         <result property="name" column="name"/>
         <result property="fileIds" column="file_ids"/>
+        <result property="serialNumber" column="serial_number"/>
         <result property="company" column="company"/>
         <result property="agent" column="agent"/>
         <result property="telephone" column="telephone"/>

@@ -3,7 +3,11 @@ package com.contract.wechat.sgin.controller;
 import com.baomidou.mybatisplus.mapper.EntityWrapper;
 import com.contract.wechat.sgin.aop.WebRecord;
 import com.contract.wechat.sgin.entity.ContractEntity;
+import com.contract.wechat.sgin.entity.ContractFileEntity;
+import com.contract.wechat.sgin.entity.EmpolyeEntity;
+import com.contract.wechat.sgin.service.ContractFileService;
 import com.contract.wechat.sgin.service.ContractService;
+import com.contract.wechat.sgin.service.EmpolyeService;
 import com.contract.wechat.sgin.utils.BaseResp;
 import com.contract.wechat.sgin.utils.wechat.StringTools;
 import lombok.Data;
@@ -18,6 +22,9 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 @Slf4j
 @Data
@@ -27,6 +34,50 @@ import java.time.ZoneId;
 public class ContractController {
     @Autowired
     private ContractService contractService;
+    @Autowired
+    private ContractFileService contractFileService;
+    @Autowired
+    private EmpolyeService empolyeService;
+
+    @PostMapping("/getContract")
+    @ResponseBody
+    public BaseResp getContract(Integer id){
+        if (id==null || id==0){
+            log.warn("合同Id不能为空");
+            return BaseResp.error("合同Id不能为空");
+        }
+        try {
+            ContractEntity contractEntity = contractService.selectOne(new EntityWrapper<ContractEntity>().eq("id",id));
+            if (contractEntity==null){
+                log.error("合同不存在");
+                return BaseResp.error("合同不存在");
+            }
+            String fileIds = contractEntity.getFileIds();
+            List<String> list = Arrays.asList(fileIds.split(","));
+            List<ContractFileEntity>contractFileEntities = contractFileService.selectBatchIds(list);
+            if (contractFileEntities==null || contractFileEntities.isEmpty()){
+                log.error("合同文件不存在");
+                return BaseResp.error("合同文件不存在");
+            }
+            List<String>fileNameList = new ArrayList<>();
+            for (ContractFileEntity contractFileEntity : contractFileEntities){
+                fileNameList.add(contractFileEntity.getName());
+            }
+            contractEntity.setFileName(fileNameList);
+            String empolyeName = contractEntity.getReceiver();
+            EmpolyeEntity empolyeEntity = empolyeService.selectOne(new EntityWrapper<EmpolyeEntity>().eq("name",empolyeName));
+            if (empolyeEntity==null){
+                log.error("员工不存在");
+                return BaseResp.error("员工不存在");
+            }
+            contractEntity.setEmpolyeEntity(empolyeEntity);
+            return BaseResp.ok("查询合同详情成功",contractEntity);
+        }catch (Exception e){
+            e.printStackTrace();
+            log.error("查询异常"+e);
+        }
+       return BaseResp.error("查询失败");
+    }
 
     @PostMapping("/updateContract")
     @ResponseBody
@@ -115,6 +166,8 @@ public class ContractController {
             ZoneId zone = ZoneId.systemDefault();
             LocalDateTime newvalidity =LocalDateTime.ofInstant(instant, zone);
             ContractEntity contractEntity = new ContractEntity();
+            String serialNumber = StringTools.getTradeno();
+            contractEntity.setSerialNumber(serialNumber);
             contractEntity.setName(name);
             contractEntity.setFileIds(fileIds);
             contractEntity.setCompany(company);

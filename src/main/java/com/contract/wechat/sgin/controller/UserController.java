@@ -203,11 +203,12 @@ public class UserController {
     }
 
     @WebRecord
-    @PostMapping("login")
-    public BaseResp login(@RequestBody WechatLoginForm wechatLoginForm, String code) {
+    @PostMapping("/login")
+    public BaseResp login(@RequestBody WechatLoginForm wechatLoginForm) {
         String avatarUrl = wechatLoginForm.getAvatarUrl();
         String gender = wechatLoginForm.getGender();
         String nickName = wechatLoginForm.getNickName();
+        String code = wechatLoginForm.getCode();
         //拼接参数
         String param = "?grant_type=" + grantType + "&appid=" + appId + "&secret=" + appSecret + "&js_code=" + code;
         String url = "https://api.weixin.qq.com/sns/jscode2session" + param;
@@ -247,22 +248,50 @@ public class UserController {
         return BaseResp.ok(map);
     }
 
-    //微信授权登录后的手机号码登录
-    @WebRecord
-    @PostMapping("mobileLogin")
     @RequiresAuthentication
-    public BaseResp mobileLogin(String mobile, String verifycode, HttpServletRequest request) {
-        //判断验证码是否正确
-        String openId = JWTUtil.getCurrentUsername(request);
-        Integer i = userService.selectCount(new EntityWrapper<UserEntity>().eq("open_id", openId));
-        if (i == 0) {
-            log.error("没有您的合同");
-            return BaseResp.error("没有您的合同");
+    @PostMapping("/updateMobile")
+    public BaseResp updateMobile(HttpServletRequest request,String mobile){
+        if (StringTools.isNullOrEmpty(mobile)){
+            log.warn("手机号码不能为空");
+            return BaseResp.error("手机号码不能为空");
         }
-        String token = JWTUtil.sign(openId);
-        Map<String, Object> map = new HashMap<>();
-        map.put("openId", openId);
-        map.put("token", token);
-        return BaseResp.ok("登陆成功", map);
+        try {
+            String openId = JWTUtil.getCurrentUsername(request);
+            UserEntity userEntity = userService.selectOne(new EntityWrapper<UserEntity>().eq("open_id",openId));
+            if (userEntity==null){
+                log.error("没有此用户,请注册");
+                return BaseResp.error("没有此用户,请注册");
+            }
+            userEntity.setMobile(mobile);
+            userEntity.setUpdatedAt(LocalDateTime.now());
+            boolean result = userService.updateById(userEntity);
+            if (!result){
+                log.error("更新失败");
+                return BaseResp.error("更新失败");
+            }
+            return BaseResp.ok("更新成功");
+        }catch (Exception e){
+            e.printStackTrace();
+            log.error("更新异常"+e);
+        }
+        return BaseResp.error("更新失败");
     }
+//    //微信授权登录后的手机号码登录
+//    @WebRecord
+//    @PostMapping("/mobileLogin")
+//    @RequiresAuthentication
+//    public BaseResp mobileLogin(String mobile, String verifycode, HttpServletRequest request) {
+//        //判断验证码是否正确
+//        String openId = JWTUtil.getCurrentUsername(request);
+//        Integer i = userService.selectCount(new EntityWrapper<UserEntity>().eq("open_id", openId));
+//        if (i == 0) {
+//            log.error("没有您的合同");
+//            return BaseResp.error("没有您的合同");
+//        }
+//        String token = JWTUtil.sign(openId);
+//        Map<String, Object> map = new HashMap<>();
+//        map.put("openId", openId);
+//        map.put("token", token);
+//        return BaseResp.ok("登陆成功", map);
+//    }
 }

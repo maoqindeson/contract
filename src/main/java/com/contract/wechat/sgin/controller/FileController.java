@@ -8,6 +8,12 @@ import com.contract.wechat.sgin.service.*;
 import com.contract.wechat.sgin.utils.BaseResp;
 import com.contract.wechat.sgin.utils.PdfUtil;
 import com.contract.wechat.sgin.utils.wechat.StringTools;
+//import com.spire.pdf.PdfDocument;
+//import com.spire.pdf.PdfPageBase;
+//import com.spire.pdf.graphics.PdfImage;
+import com.spire.pdf.PdfDocument;
+import com.spire.pdf.PdfPageBase;
+import com.spire.pdf.graphics.PdfImage;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.io.FileUtils;
@@ -25,9 +31,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
+
+import static com.contract.wechat.sgin.utils.ImageToPDF.getImgHeight;
+import static com.contract.wechat.sgin.utils.ImageToPDF.getImgWidth;
+
 
 @Slf4j
 @Data
@@ -100,8 +108,45 @@ public class FileController {
         return null;
     }
 
+    @WebRecord
+    @PostMapping("/uploadPNGFile")
+    @ResponseBody
+    public BaseResp uploadPNGFile(@RequestParam("file") MultipartFile file) throws IOException {
+        if (null == file || file.isEmpty()) {
+            return BaseResp.error("请选择上传文件");
+        }
+        try {
+            String saveFileName = file.getOriginalFilename();
 
+            String[]array = saveFileName.split("\\.");
+            String fileName = array[0];
+            String filePath = contractFilePath;
+            File pdfFile = new File(contractFilePath, saveFileName);
+            FileUtils.copyInputStreamToFile(file.getInputStream(), pdfFile);
+             //创建PDF文档
+            PdfDocument doc = new PdfDocument();
+            //添加一个页面
+            PdfPageBase page = doc.getPages().add();
+            //加载图片
+            PdfImage image = PdfImage.fromFile(filePath+File.separator+saveFileName);
+            //绘制图片到PDF并设置其在PDF文件中的位置和大小
+            double widthFitRate = getImgWidth(new File(filePath+File.separator+saveFileName)) / page.getActualBounds(true).getWidth();
+            double heightFitRate = getImgHeight(new File(filePath+File.separator+saveFileName)) / page.getActualBounds(true).getHeight();
 
+            double fitRate = Math.max(widthFitRate, heightFitRate);
+            double fitWidth = getImgWidth(new File(filePath+File.separator+saveFileName)) / fitRate * 0.8f;
+            double fitHeight = getImgHeight(new File(filePath+File.separator+saveFileName)) / fitRate * 0.8f;
+            page.getCanvas().drawImage(image, 50, 30, fitWidth, fitHeight);
+            //保存并关闭
+            doc.saveToFile(filePath+File.separator+fileName+".pdf");
+            doc.close();
+            return BaseResp.ok("上传成功" );
+        } catch (Exception e) {
+            e.printStackTrace();
+            log.error("上传文件异常");
+        }
+        return BaseResp.error("上传失败");
+    }
 
     /**
      * 上传PDF转图片到服务器,并插入到合同文件表,返回合同文件Id的list
@@ -114,13 +159,13 @@ public class FileController {
             return BaseResp.error("请选择上传文件");
         }
         try {
-        String saveFileName = file.getOriginalFilename();
-        String filePath = contractFilePath;
-        File pdfFile = new File(contractFilePath,saveFileName);
-        List<Integer>fileIds = new ArrayList<>();
-        FileUtils.copyInputStreamToFile(file.getInputStream(), pdfFile);
+            String saveFileName = file.getOriginalFilename();
+            String filePath = contractFilePath;
+            File pdfFile = new File(contractFilePath, saveFileName);
+            List<Integer> fileIds = new ArrayList<>();
+            FileUtils.copyInputStreamToFile(file.getInputStream(), pdfFile);
 
-            List<String> list = PdfUtil.pdfToImagePath(filePath +File.separator+ saveFileName, pdfFile);
+            List<String> list = PdfUtil.pdfToImagePath(filePath + File.separator + saveFileName, pdfFile);
             //拿到pdf转成jpg的路径
             for (int i = 0; i < list.size(); i++) {
                 String imagePath = list.get(i);
@@ -136,13 +181,12 @@ public class FileController {
                 }
                 fileIds.add(contractFileEntity.getId());
             }
-            return BaseResp.ok("上传成功"+fileIds);
+            return BaseResp.ok("上传成功" + fileIds);
         } catch (Exception e) {
             e.printStackTrace();
             log.error("上传文件异常");
         }
         return BaseResp.error("上传失败");
-
     }
 
 

@@ -9,4 +9,5 @@ public class WechatLoginForm {
     private String gender;
     private String encryptedData;
     private String iv;
+    private String code;
 }

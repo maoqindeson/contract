@@ -99,7 +99,7 @@ public class JWTUtil {
 
 
     public static void main(String[] args) {
-        String username = "opVn-4422_QHfTzSiaxvrwzh1f2M";
+        String username = "oIwc_5Zs7FfXmAUkmq68MLHrw20k";
         String token = JWTUtil.sign(username);
         System.out.println(token);
         LocalDate updatedAt = LocalDate.now();

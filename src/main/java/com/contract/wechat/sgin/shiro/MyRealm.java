@@ -66,12 +66,12 @@ public class MyRealm extends AuthorizingRealm {
     protected AuthenticationInfo doGetAuthenticationInfo(AuthenticationToken auth) throws AuthenticationException {
         String token = (String) auth.getCredentials();
         // 解密获得username，用于和数据库进行对比
-        String username = JWTUtil.getCurrentUsernameByToken(token);
-        if (StringTools.isNullOrEmpty(username)) {
+        String openId = JWTUtil.getCurrentUsernameByToken(token);
+        if (StringTools.isNullOrEmpty(openId)) {
             throw new AuthenticationException("token invalid");
         }
 
-        UserEntity userBean = userService.selectOne(new EntityWrapper<UserEntity>().eq("username",username));
+        UserEntity userBean = userService.selectOne(new EntityWrapper<UserEntity>().eq("open_id",openId));
         if (userBean == null) {
             throw new AuthenticationException("User didn't existed!");
         }
